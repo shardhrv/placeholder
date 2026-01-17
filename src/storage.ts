@@ -180,3 +180,15 @@ export async function fetchMMLUQuestions(_offset: number): Promise<any[]> {
     return [];
   }
 }
+
+/**
+ * time for current webpage
+ * @param domain current webpage
+ * @param whitelist current list of ok websites
+ * @returns time left
+ */
+export function getRemainingWhitelistMs(domain: string, whitelist: Record<string, number>) {
+  const expiresAt = whitelist[domain];
+  if (!expiresAt) return 0;
+  return expiresAt - Date.now();
+}

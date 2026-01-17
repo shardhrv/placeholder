@@ -1,6 +1,30 @@
-import { addToWhitelist, getQuestionData, advanceQuestion } from "../storage";
+import { addToWhitelist, getQuestionData, advanceQuestion, getRemainingWhitelistMs, getSettings } from "../storage";
 import enableCursorGlow from "../ui/cursorglow";
-import { unmountOverlay, type OverlayMount } from "./load";
+import { stopCornerTimer, startCornerTimer } from "../ui/timer";
+import { isWhitelisted } from "../whitelist";
+import { mountOverlay, unmountOverlay, type OverlayMount } from "./load";
+
+async function block(domain: string) {
+  const mount = await mountOverlay();
+  bindOverlayUI(mount, domain);
+}
+
+function allowWithTimer(domain: string, whitelist: Record<string, number>) {
+  stopCornerTimer();
+
+  startCornerTimer(
+    () => getRemainingWhitelistMs(domain, whitelist),
+    async () => {
+      const fresh = await getSettings();
+      if (!fresh.enabled) return;
+
+      if (!isWhitelisted(domain, fresh.whitelist)) {
+        stopCornerTimer();
+        await block(domain);
+      }
+    }
+  );
+}
 
 export async function bindOverlayUI(mount: OverlayMount, domain: string): Promise<void> {
   const { overlay } = mount;
@@ -68,7 +92,14 @@ export async function bindOverlayUI(mount: OverlayMount, domain: string): Promis
       console.log("✅ Correct answer!");
       await addToWhitelist(domain);
       await advanceQuestion(questionData);
+      
+      const fresh = await getSettings();
+      if (fresh.enabled && isWhitelisted(domain, fresh.whitelist)) {
+        allowWithTimer(domain, fresh.whitelist);
+      }
+
       remove();
+
     } else {
       console.log("❌ Wrong answer");
       showError(true);
