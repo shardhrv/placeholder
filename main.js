@@ -1,5 +1,6 @@
 
 (async function main() {
+  await cleanupExpiredWhitelist(); 
   const { enabled, whitelist } = await getSettings();
   if (!enabled) return;
 
@@ -15,11 +16,12 @@ function getSettings() {
     chrome.storage.sync.get(["enabled", "whitelist"], (result) => {
       resolve({
         enabled: Boolean(result.enabled),
-        whitelist: Array.isArray(result.whitelist) ? result.whitelist : [],
+        whitelist: result.whitelist || {}, 
       });
     });
   });
 }
+
 function getQuestionData() {
   return new Promise((resolve) => {
     chrome.storage.local.get(["questions", "questionIndex", "offset"], (result) => {
@@ -57,7 +59,24 @@ async function fetchMMLUQuestions(offset) {
 }
 
 function isWhitelisted(domain, whitelist) {
-  return whitelist.includes(domain);
+  
+  // Check if domain exists in whitelist
+  if (!whitelist[domain]) {
+    return false;  // Not whitelisted
+  }
+  
+  // Check if expired
+  const expiryTime = whitelist[domain];
+  const now = Date.now();
+  
+  if (now > expiryTime) {
+    console.log(`⏰ Whitelist expired for ${domain}`);
+    return false;  // Expired
+  }
+  
+  const minutesLeft = Math.floor((expiryTime - now) / (1000 * 60));
+  console.log(`${domain} is whitelisted (${minutesLeft} minutes remaining)`);
+  return true;
 }
 
 
@@ -103,7 +122,7 @@ async function showOverlay(domain) {
 
 
   const submitBtn = overlay.querySelector("#submit-btn");
-  const whitelistBtn = overlay.querySelector("#whitelist-btn");
+  //const whitelistBtn = overlay.querySelector("#whitelist-btn");
   const error = overlay.querySelector("#annoy-error");
 
 
@@ -130,10 +149,10 @@ async function showOverlay(domain) {
     
     if (userAnswer === currentQuestion.answer) {
       const newIndex = questionData.questionIndex + 1;
-      console.log(`✅ Correct! Moving to question ${newIndex + 1}`);
+      console.log(`Correct! Moving to question ${newIndex + 1}`);
       addDomainToWhitelist(domain);
       if (newIndex >= 20) {
-        console.log("📥 Fetching next batch...");
+        console.log("Fetching next batch...");
         // You'll need to add fetchMMLUQuestions to main.js too
         const newQuestions = await fetchMMLUQuestions(questionData.offset);
         await chrome.storage.local.set({
@@ -162,10 +181,52 @@ async function showOverlay(domain) {
 function addDomainToWhitelist(domain) {
   return new Promise((resolve) => {
     chrome.storage.sync.get(["whitelist"], (result) => {
-      const whitelist = Array.isArray(result.whitelist) ? result.whitelist : [];
-      if (!whitelist.includes(domain)) whitelist.push(domain);
-
+      const whitelist = result.whitelist || {};  // Now it's an object, not array!
+      
+      const ttl =  10* 60 * 1000;  // 10 min
+      const expiryTime = Date.now() + ttl;
+      
+      whitelist[domain] = expiryTime;  // Store domain with expiry timestamp
+      
+      console.log(`Whitelisted ${domain} until:`, new Date(expiryTime));
+      
       chrome.storage.sync.set({ whitelist }, () => resolve());
+    });
+  });
+}
+
+async function cleanupExpiredWhitelist() {
+  return new Promise((resolve) => {
+    chrome.storage.sync.get(["whitelist"], (result) => {
+      const whitelist = result.whitelist || {};
+      
+      // If old array format, clear it
+      if (Array.isArray(whitelist)) {
+        chrome.storage.sync.set({ whitelist: {} }, () => resolve());
+        return;
+      }
+      
+      const now = Date.now();
+      let removed = 0;
+      
+      // Remove expired entries
+      for (let domain in whitelist) {
+        if (now > whitelist[domain]) {
+          delete whitelist[domain];
+          removed++;
+          console.log(`🗑️ Removed expired: ${domain}`);
+        }
+      }
+      
+      if (removed > 0) {
+        chrome.storage.sync.set({ whitelist }, () => {
+          console.log(`Cleaned up ${removed} expired entries`);
+          resolve();
+        });
+      } else {
+        console.log("No expired entries to clean");
+        resolve();
+      }
     });
   });
 }

@@ -1,20 +1,45 @@
-import { addToWhitelist } from "../storage";
+import { addToWhitelist, getQuestionData, advanceQuestion } from "../storage";
 import { unmountOverlay, type OverlayMount } from "./load";
 
-export function bindOverlayUI(mount: OverlayMount, domain: string): void {
+export async function bindOverlayUI(mount: OverlayMount, domain: string): Promise<void> {
   const { overlay } = mount;
 
-  const input = overlay.querySelector<HTMLInputElement>("#answer-input");
+  // Get current question
+  const questionData = await getQuestionData();
+  if (!questionData.questions || questionData.questions.length === 0) {
+    console.error("❌ No questions loaded!");
+    unmountOverlay();
+    return;
+  }
+
+  const currentQuestion = questionData.questions[questionData.questionIndex];
+  console.log("🎯 Current question:", currentQuestion);
+
+  // Get DOM elements
+  const questionText = overlay.querySelector<HTMLElement>("#question-text");
+  const questionSubject = overlay.querySelector<HTMLElement>("#question-subject");
+  const choicesContainer = overlay.querySelector<HTMLElement>("#choices-container");
   const submitBtn = overlay.querySelector<HTMLButtonElement>("#submit-btn");
-  const whitelistBtn = overlay.querySelector<HTMLButtonElement>("#whitelist-btn");
   const error = overlay.querySelector<HTMLElement>("#annoy-error");
 
-  if (!input || !submitBtn || !whitelistBtn) {
+  if (!questionText || !questionSubject || !choicesContainer || !submitBtn) {
     unmountOverlay();
     throw new Error("Overlay missing expected elements");
   }
 
-  const correctAnswer = "1081";
+  // Inject question data
+  questionText.textContent = currentQuestion.question;
+  questionSubject.textContent = `Subject: ${currentQuestion.subject}`;
+
+  // Create choices
+  choicesContainer.innerHTML = currentQuestion.choices.map((choice: string, index: number) => `
+    <label style="display: block; margin: 10px 0; cursor: pointer;">
+      <input type="radio" name="answer" value="${index}">
+      <span>${String.fromCharCode(65 + index)}. ${choice}</span>
+    </label>
+  `).join('');
+
+  console.log("✅ Question displayed successfully");
 
   const showError = (show: boolean) => {
     if (!error) return;
@@ -24,21 +49,25 @@ export function bindOverlayUI(mount: OverlayMount, domain: string): void {
 
   const remove = () => unmountOverlay();
 
-  submitBtn.addEventListener("click", () => {
-    const answer = String(input.value).trim();
-    if (answer === correctAnswer) remove();
-    else {
-      showError(true);
-      input.select?.();
+  // Handle submit
+  submitBtn.addEventListener("click", async () => {
+    const selected = overlay.querySelector<HTMLInputElement>('input[name="answer"]:checked');
+    
+    if (!selected) {
+      alert("Please select an answer!");
+      return;
     }
-  });
-
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") submitBtn.click();
-  });
-
-  whitelistBtn.addEventListener("click", async () => {
-    await addToWhitelist(domain);
-    remove();
+    
+    const userAnswer = parseInt(selected.value);
+    
+    if (userAnswer === currentQuestion.answer) {
+      console.log("✅ Correct answer!");
+      await addToWhitelist(domain);
+      await advanceQuestion(questionData);
+      remove();
+    } else {
+      console.log("❌ Wrong answer");
+      showError(true);
+    }
   });
 }

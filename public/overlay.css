@@ -1,49 +1,108 @@
 #annoy-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 2147483647;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: rgba(0, 0, 0, 0.95) !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif !important;
 }
 
 #annoy-popup {
-  background: white;
-  padding: 40px;
-  border-radius: 10px;
-  max-width: 500px;
-  text-align: center;
+  background: #ffffff !important;
+  padding: 40px !important;
+  border-radius: 12px !important;
+  max-width: 600px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
 }
 
-#annoy-question {
-  font-size: 24px;
-  font-weight: bold;
+#annoy-popup * {
+  color: #000000 !important;
+  font-family: inherit !important;
 }
 
-#annoy-actions {
-  margin-top: 16px;
-  display: flex;
-  gap: 12px;
-  justify-content: center;
+#annoy-popup h1 {
+  font-size: 28px !important;
+  color: #1a1a1a !important;
+  margin: 0 0 20px 0 !important;
+  font-weight: 600 !important;
+}
+
+#question-subject {
+  font-size: 14px !important;
+  color: #666666 !important;
+  margin-bottom: 15px !important;
+  font-weight: 500 !important;
+}
+
+#question-text {
+  font-size: 18px !important;
+  color: #1a1a1a !important;
+  margin: 20px 0 !important;
+  line-height: 1.6 !important;
+  font-weight: 400 !important;
+}
+
+#choices-container {
+  margin: 25px 0 !important;
+}
+
+#choices-container label {
+  display: block !important;
+  margin: 12px 0 !important;
+  padding: 15px !important;
+  border: 2px solid #d0d0d0 !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  background: #ffffff !important;
+}
+
+#choices-container label:hover {
+  background: #f5f5f5 !important;
+  border-color: #007bff !important;
+}
+
+#choices-container label input[type="radio"] {
+  margin-right: 12px !important;
+  cursor: pointer !important;
+}
+
+#choices-container label span {
+  color: #1a1a1a !important;
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+  display: inline !important;
 }
 
 #annoy-error {
-  margin-top: 12px;
+  color: #dc3545 !important;
+  font-weight: 600 !important;
+  margin: 15px 0 !important;
+  font-size: 16px !important;
 }
 
+#submit-btn {
+  padding: 12px 32px !important;
+  background: #007bff !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  margin-top: 20px !important;
+  transition: background 0.2s ease !important;
+}
 
-/*
-const block = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
+#submit-btn:hover {
+  background: #0056b3 !important;
+}
 
-  ["click", "mousedown", "mouseup", "pointerdown", "pointerup", "keydown", "keypress", "keyup", "touchstart", "touchend", "wheel"]
-    .forEach((type) => overlay.addEventListener(type, block, true));
-
-    document.documentElement.appendChild(overlay);
-    */
+#submit-btn:active {
+  background: #004085 !important;
+}
