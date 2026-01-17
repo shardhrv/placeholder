@@ -3,9 +3,9 @@ import { defineConfig } from "wxt";
 export default defineConfig({
   manifest: {
     manifest_version: 3,
-    name: "test extension",
-    version: "0.1.0",
-    description: "irritate the user :)",
+    name: "Place Holder",
+    version: "1.0.0",
+    description: "Stop your scrolling and start learning something new instead!",
 
     permissions: ["storage"],
 
