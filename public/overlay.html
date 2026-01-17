@@ -1,18 +1,22 @@
 <div id="annoy-overlay">
+  <div class="cursor-glow"></div>
   <div id="annoy-popup">
-    <h1>Answer to Continue 🤓</h1>
-    
-    <p id="question-subject" style="font-size: 14px; color: #666;"></p>
-    
-    <p id="question-text" style="font-size: 16px; margin: 20px 0;"></p>
-    
-    <div id="choices-container">
-      <!-- Choices will be injected here -->
+    <div id="annoy-popup-content">
+
+        <h1>Answer to Continue 🤓</h1>
+        
+        <p id="question-subject" style="font-size: 14px; color: #666;"></p>
+        
+        <p id="question-text" style="font-size: 16px; margin: 20px 0;"></p>
+        
+        <div id="choices-container">
+          <!-- Choices will be injected here -->
+        </div>
+        
+        <p id="annoy-error" hidden style="color: red;">Wrong answer! Try again.</p>
+        
+        <button id="submit-btn">Submit</button>
+      
     </div>
-    
-    <p id="annoy-error" hidden style="color: red;">Wrong answer! Try again.</p>
-    
-    <button id="submit-btn">Submit</button>
-  
   </div>
 </div>

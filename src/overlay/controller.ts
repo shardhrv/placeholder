@@ -1,11 +1,15 @@
 import { addToWhitelist, getQuestionData, advanceQuestion } from "../storage";
+import enableCursorGlow from "../ui/cursorglow";
 import { unmountOverlay, type OverlayMount } from "./load";
 
 export async function bindOverlayUI(mount: OverlayMount, domain: string): Promise<void> {
   const { overlay } = mount;
 
+  const cleanupGlow = enableCursorGlow(overlay);
+
   // Get current question
   const questionData = await getQuestionData();
+  console.log(questionData)
   if (!questionData.questions || questionData.questions.length === 0) {
     console.error("❌ No questions loaded!");
     unmountOverlay();
