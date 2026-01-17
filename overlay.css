@@ -1,0 +1,20 @@
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 3rem;
+    height: 3rem;
+    z-index: 2147483647;
+}
+
+/*
+const block = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  ["click", "mousedown", "mouseup", "pointerdown", "pointerup", "keydown", "keypress", "keyup", "touchstart", "touchend", "wheel"]
+    .forEach((type) => overlay.addEventListener(type, block, true));
+
+    document.documentElement.appendChild(overlay);
+    */
