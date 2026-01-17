@@ -4,45 +4,80 @@ import { mountOverlay } from "../src/overlay/load";
 import { bindOverlayUI } from "../src/overlay/controller";
 import { stopCornerTimer, startCornerTimer } from "../src/ui/timer";
 
-async function block(domain: string) {
+async function block(pageKey: string) {
+  stopCornerTimer();
   const mount = await mountOverlay();
-  bindOverlayUI(mount, domain);
+  bindOverlayUI(mount, pageKey);
 }
 
-function allowWithTimer(domain: string, whitelist: Record<string, number>) {
+function allowWithTimer(pageKey: string, whitelist: Record<string, number>) {
   stopCornerTimer();
 
   startCornerTimer(
-    () => getRemainingWhitelistMs(domain, whitelist),
+    () => getRemainingWhitelistMs(pageKey, whitelist),
     async () => {
-      // timer ended -> re-check latest settings and block if needed
       const fresh = await getSettings();
       if (!fresh.enabled) return;
 
-      if (!isWhitelisted(domain, fresh.whitelist)) {
-        stopCornerTimer();
-        await block(domain);
+      const currentKey = window.location.href;
+      if (!isWhitelisted(currentKey, fresh.whitelist)) {
+        await block(currentKey);
       }
     }
   );
 }
+
+async function evaluate() {
+  const { enabled, whitelist } = await getSettings();
+  if (!enabled) return;
+
+  const pageKey = window.location.href;
+
+  if (isWhitelisted(pageKey, whitelist)) {
+    allowWithTimer(pageKey, whitelist);
+  } else {
+    await block(pageKey);
+  }
+}
+
+function watchSpaNavigations(onChange: () => void) {
+  let last = location.href;
+
+  const check = () => {
+    if (location.href !== last) {
+      last = location.href;
+      onChange();
+    }
+  };
+
+  function wrap(type: "pushState" | "replaceState") {
+    const original = history[type];
+
+    history[type] = function (
+      this: History,
+      ...args: Parameters<History["pushState"]>
+    ) {
+      const ret = original.apply(this, args);
+      check();
+      return ret;
+    };
+  }
+
+  wrap("pushState");
+  wrap("replaceState");
+  window.addEventListener("popstate", check);
+
+  const interval = setInterval(check, 500);
+  return () => clearInterval(interval);
+}
+
 
 export default defineContentScript({
   matches: ["http://*/*", "https://*/*"],
   runAt: "document_idle",
 
   async main() {
-    const { enabled, whitelist } = await getSettings();
-    if (!enabled) return;
-
-    const domain = window.location.href;
-
-    if (isWhitelisted(domain, whitelist)) {
-      allowWithTimer(domain, whitelist);
-      return;
-    }
-
-    stopCornerTimer();
-    await block(domain);
+    await evaluate();
+    watchSpaNavigations(evaluate);
   },
 });
