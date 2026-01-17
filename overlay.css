@@ -1,11 +1,40 @@
-#overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 3rem;
-    height: 3rem;
-    z-index: 2147483647;
+#annoy-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 2147483647;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+
+#annoy-popup {
+  background: white;
+  padding: 40px;
+  border-radius: 10px;
+  max-width: 500px;
+  text-align: center;
+}
+
+#annoy-question {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+#annoy-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+#annoy-error {
+  margin-top: 12px;
+}
+
 
 /*
 const block = (e) => {

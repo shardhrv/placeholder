@@ -8,10 +8,16 @@
         "default_popup": "popup.html"
     },
     "content_scripts": [
-            {
-        "matches": ["http://*/*", "https://*/*"],
-        "js": ["main.js"],
-        "run_at": "document_idle"
+        {
+            "matches": ["http://*/*", "https://*/*"],
+            "js": ["main.js"],
+            "run_at": "document_idle"
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": ["overlay.html", "overlay.css"],
+            "matches": ["http://*/*", "https://*/*"]
         }
     ]
 }

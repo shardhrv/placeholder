@@ -1,96 +1,96 @@
-chrome.storage.sync.get(["enabled", "whitelist"], (result) => {
-  if (!result.enabled) return;
-  const currDomain = window.location.hostname;
-  const whitelist = result.whitelist || [];
+(async function main() {
+  const { enabled, whitelist } = await getSettings();
+  if (!enabled) return;
 
-  if (!whitelist.includes(currDomain)) {
-    annoy();
-  }
-});
+  const domain = window.location.hostname;
+  if (isWhitelisted(domain, whitelist)) return;
+
+  await showOverlay(domain);
+})();
 
 
-function annoy() {
-  // Create overlay background (blocks clicking underneath)
-  const overlay = document.createElement('div');
-  overlay.id = 'annoy-overlay';
-  overlay.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    z-index: 999999;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  `;
-
-  // Create the popup box
-  const popup = document.createElement('div');
-  popup.style.cssText = `
-    background: white;
-    padding: 40px;
-    border-radius: 10px;
-    max-width: 500px;
-    text-align: center;
-  `;
-
-  popup.innerHTML = `
-    <h1>🚫 Productivity Block!</h1>
-    <p>Solve this to continue:</p>
-    <p style="font-size: 24px; font-weight: bold;">What's 47 × 23?</p>
-    <input type="number" id="answer-input" placeholder="Your answer">
-    <br><br>
-    <button id="submit-btn">Submit</button>
-    <button id="whitelist-btn">Add to Whitelist</button>
-  `;
-
-  overlay.appendChild(popup);
-  document.body.appendChild(overlay);
-
-  // Handle submit
-  document.getElementById('submit-btn').addEventListener('click', () => {
-    const answer = document.getElementById('answer-input').value;
-    if (answer === '1081') {
-      const currentDomain = window.location.hostname;
-    // Save to whitelist in storage
-    chrome.storage.sync.get(['whitelist'], (result) => {
-      const whitelist = result.whitelist || [];
-      whitelist.push(currentDomain);
-      chrome.storage.sync.set({ whitelist }, () => {
-        overlay.remove();
-        alert(`${currentDomain} whitelisted!`);
+function getSettings() {
+  return new Promise((resolve) => {
+    chrome.storage.sync.get(["enabled", "whitelist"], (result) => {
+      resolve({
+        enabled: Boolean(result.enabled),
+        whitelist: Array.isArray(result.whitelist) ? result.whitelist : [],
       });
     });
+  });
+}
+
+
+function isWhitelisted(domain, whitelist) {
+  return whitelist.includes(domain);
+}
+
+
+async function showOverlay(domain) {
+  if (document.getElementById("annoy-overlay")) return;
+
+  const [html, css] = await Promise.all([
+    fetch(chrome.runtime.getURL("overlay.html")).then((r) => r.text()),
+    fetch(chrome.runtime.getURL("overlay.css")).then((r) => r.text()),
+  ]);
+
+  const styleTag = document.createElement("style");
+  styleTag.id = "annoy-style";
+  styleTag.textContent = css;
+  document.documentElement.appendChild(styleTag);
+
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = html.trim();
+  const overlay = wrapper.firstElementChild;
+  document.documentElement.appendChild(overlay);
+
+  const input = overlay.querySelector("#answer-input");
+  const submitBtn = overlay.querySelector("#submit-btn");
+  const whitelistBtn = overlay.querySelector("#whitelist-btn");
+  const error = overlay.querySelector("#annoy-error");
+
+  const correctAnswer = "1081";
+
+  function removeOverlay() {
+    overlay.remove();
+    styleTag.remove();
+  }
+
+  function showError(show) {
+    if (!error) return;
+    if (show) error.removeAttribute("hidden");
+    else error.setAttribute("hidden", "");
+  }
+
+  submitBtn.addEventListener("click", () => {
+    const answer = String(input.value).trim();
+    if (answer === correctAnswer) {
+      removeOverlay();
     } else {
-      alert('Wrong answer! Try again.');
+      showError(true);
+      input.select?.();
     }
   });
 
-  // Handle whitelist
-  /*document.getElementById('whitelist-btn').addEventListener('click', () => {
-    const currentDomain = window.location.hostname;
-    // Save to whitelist in storage
-    chrome.storage.sync.get(['whitelist'], (result) => {
-      const whitelist = result.whitelist || [];
-      whitelist.push(currentDomain);
-      chrome.storage.sync.set({ whitelist }, () => {
-        overlay.remove();
-        alert(`${currentDomain} whitelisted!`);
-      });
-    });
-  });*/
+  // Allow Enter key to submit
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") submitBtn.click();
+  });
+
+  whitelistBtn.addEventListener("click", async () => {
+    await addDomainToWhitelist(domain);
+    removeOverlay();
+  });
+
 }
 
-function renderExamplePage() {
-  return `
-    <body>
-      <div class="card">
-        <h1>Hello world</h1>
-        <p>This page has been replaced by your extension. or at least I am trying...</p>
-      </div>
-    </body>
-    <button type="button">Click Me!</button>
-  `
+function addDomainToWhitelist(domain) {
+  return new Promise((resolve) => {
+    chrome.storage.sync.get(["whitelist"], (result) => {
+      const whitelist = Array.isArray(result.whitelist) ? result.whitelist : [];
+      if (!whitelist.includes(domain)) whitelist.push(domain);
+
+      chrome.storage.sync.set({ whitelist }, () => resolve());
+    });
+  });
 }

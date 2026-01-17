@@ -1,6 +1,15 @@
-<div id="overlay">
-    <div>
-        <h1>Page has been blocked!</h1>
-        <p>This is to check if the page is blocked properly by the blocker.</p>        
+<div id="annoy-overlay">
+  <div id="annoy-popup">
+    <h1>Testing to see if the pop up is blocked</h1>
+    <p>Solve this to continue:</p>
+    <p id="annoy-question">What's 47 × 23?</p>
+
+    <input type="number" id="answer-input" placeholder="Your answer" />
+    <div id="annoy-actions">
+      <button id="submit-btn">Submit</button>
+      <button id="whitelist-btn">Add to Whitelist</button>
     </div>
+
+    <p id="annoy-error" hidden>Wrong answer! Try again.</p>
+  </div>
 </div>
