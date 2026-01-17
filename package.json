@@ -1,0 +1,28 @@
+{
+  "name": "placeholder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "wxt",
+    "build": "wxt build",
+    "prepare": "wxt prepare",
+    "postinstall": "wxt prepare"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shardhrv/placeholder.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/shardhrv/placeholder/issues"
+  },
+  "homepage": "https://github.com/shardhrv/placeholder#readme",
+  "devDependencies": {
+    "wxt": "^0.20.13"
+  }
+}
