@@ -147,7 +147,9 @@ export async function fetchMMLUQuestions(_offset: number): Promise<any[]> {
       const API_URL = `https://datasets-server.huggingface.co/rows?dataset=cais/mmlu&config=all&split=test&offset=${index}&length=1`;
       
       try {
+        
         const response = await fetch(API_URL);
+        console.log(response)
         const data = await response.json();
         
         if (data.rows && data.rows.length > 0) {

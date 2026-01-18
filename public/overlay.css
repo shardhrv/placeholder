@@ -138,3 +138,18 @@
 #submit-btn:active {
   background: #004085 !important;
 }
+
+#punishment-screen {
+  animation: fadeIn 0.5s ease-in;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;          /* 👈 spacing between text and retry button */
+  text-align: center;
+  padding: 40px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
