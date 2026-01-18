@@ -103,9 +103,7 @@ export async function bindOverlayUI(mount: OverlayMount, domain: string): Promis
     } else {
       wrongCount += 1;
       console.log(`❌ Wrong answer (${wrongCount}/2)`);
-      console.log("❌ Wrong answer");
       if (wrongCount >= 2) {
-        // PUNISHMENT MODE!
         await showPunishment(overlay, domain, currentQuestion);
         console.log("🤡 Punishment function completed");
         wrongCount = 0;
@@ -235,6 +233,6 @@ async function showPunishment(
   retryBtn.addEventListener('click', () => {
     punishmentDiv.remove();
     // Reload the overlay with the same question
-    location.reload(); // Simple approach: just reload the page
+    location.reload();
   });
 }
